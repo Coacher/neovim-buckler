@@ -1,23 +1,23 @@
-*buckler.txt*  Maintain a linear yank history with register synchronization
+*neovim-buckler.txt*          Maintain a linear yank history through registers
 
 Author:  Coacher
 License: Same terms as Vim itself (see |license|)
 
 ==============================================================================
-CONTENTS                                                    *buckler-contents*
+CONTENTS                                             *neovim-buckler-contents*
 
-    1. Introduction .......................... |buckler-introduction|
-    2. Requirements .......................... |buckler-requirements|
-    3. Setup ................................. |buckler-setup|
-    4. Configuration ......................... |buckler-configuration|
-    5. How It Works .......................... |buckler-how-it-works|
-    6. Related Plugins ....................... |buckler-related-plugins|
-    7. About ................................. |buckler-about|
+    1. Introduction ......................... |neovim-buckler-introduction|
+    2. Requirements ......................... |neovim-buckler-requirements|
+    3. Setup ................................ |neovim-buckler-setup|
+    4. Configuration ........................ |neovim-buckler-configuration|
+    5. How It Works ......................... |neovim-buckler-how-it-works|
+    6. Related Plugins ...................... |neovim-buckler-related-plugins|
+    7. About ................................ |neovim-buckler-about|
 
 ==============================================================================
-INTRODUCTION                                            *buckler-introduction*
+INTRODUCTION                                     *neovim-buckler-introduction*
 
-buckler is a Neovim plugin that maintains a linear yank history and
+neovim-buckler is a Neovim plugin that maintains a linear yank history and
 automatically synchronizes it with the unnamed, numbered, and clipboard
 registers.
 
@@ -36,15 +36,15 @@ For a complementary plugin that prevents delete/change operations from
 affecting registers, see https://github.com/Coacher/neovim-cutlass
 
 ==============================================================================
-REQUIREMENTS                                            *buckler-requirements*
+REQUIREMENTS                                     *neovim-buckler-requirements*
 
 • Neovim 0.7.0 or later
 • 'clipboard' feature (optional, for system clipboard synchronization)
 
 ==============================================================================
-SETUP                                                          *buckler-setup*
+SETUP                                                   *neovim-buckler-setup*
 
-To enable buckler with default settings, add this to your init.lua:
+To enable neovim-buckler with default settings, add this to your init.lua:
 >lua
     require('buckler').setup()
 <
@@ -56,23 +56,25 @@ To customize the plugin behavior, pass a configuration table:
     })
 <
 ==============================================================================
-CONFIGURATION                                          *buckler-configuration*
+CONFIGURATION                                   *neovim-buckler-configuration*
 
 The |buckler.setup()| function accepts an optional configuration table with
 the following options:
 
-                                                       *buckler-history_length*
+                                               *neovim-buckler-history_length*
 history_length~
     Type: number
     Default: 10
 
     Maximum number of items to store in the yank history. The history is
-    maintained as a circular buffer, with new yanks pushing out the oldest
+    maintained as a linear buffer, with new yanks pushing out the oldest
     entries when the limit is reached.
 
     The numbered registers (0-9) are synchronized with the first 10 items of
     the history, so setting this value lower than 10 will still only populate
-    that many numbered registers.
+    that many numbered registers. Setting it higher than 10 allows you to
+    maintain a longer history internally, even though only the first 10 items
+    will be accessible through numbered registers.
 
     Example:
 >lua
@@ -80,7 +82,7 @@ history_length~
             history_length = 25,
         })
 <
-                                                       *buckler-sync_clipboard*
+                                               *neovim-buckler-sync_clipboard*
 sync_clipboard~
     Type: boolean
     Default: true
@@ -104,13 +106,14 @@ sync_clipboard~
         })
 <
 ==============================================================================
-HOW IT WORKS                                            *buckler-how-it-works*
+HOW IT WORKS                                     *neovim-buckler-how-it-works*
 
 Register Synchronization~
 
-buckler maintains synchronization between multiple register types:
+neovim-buckler maintains synchronization between multiple register types:
 
-1. Yank History - Internal linear history up to |buckler-history_length| items
+1. Yank History - Internal linear history up to
+   |neovim-buckler-history_length|
 2. Numbered Registers - Registers "0 through "9 (see |quote_number|)
 3. Unnamed Register - Register "" (see |quote_quote|)
 4. Clipboard Registers - Registers "* and/or "+ (see |quotestar| |quoteplus|)
@@ -155,7 +158,7 @@ When pasting in visual mode with |p|:
 
 Clipboard Synchronization~
 
-When |buckler-sync_clipboard| is enabled:
+When |neovim-buckler-sync_clipboard| is enabled:
 
 • On |FocusLost|, the current clipboard contents are stored.
 
@@ -168,19 +171,19 @@ When |buckler-sync_clipboard| is enabled:
   your Neovim yank workflow.
 
 ==============================================================================
-RELATED PLUGINS                                      *buckler-related-plugins*
+RELATED PLUGINS                               *neovim-buckler-related-plugins*
 
 neovim-cutlass~
     https://github.com/Coacher/neovim-cutlass
 
-    A plugin that prevents delete and change operations from affecting
-    registers. Works well with buckler to give you complete control over
-    what goes into your yank history.
+    A Neovim plugin that prevents delete and change operations from affecting
+    registers. Works well with neovim-buckler to give you complete control
+    over what goes into your yank history.
 
 ==============================================================================
-ABOUT                                                          *buckler-about*
+ABOUT                                                   *neovim-buckler-about*
 
-Find the latest version of buckler at:
+Find the latest version of neovim-buckler at:
 
     https://github.com/Coacher/neovim-buckler
 
