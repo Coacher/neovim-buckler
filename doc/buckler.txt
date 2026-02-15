@@ -1,0 +1,190 @@
+*buckler.txt*  Maintain a linear yank history with register synchronization
+
+Author:  Coacher
+License: Same terms as Vim itself (see |license|)
+
+==============================================================================
+CONTENTS                                                    *buckler-contents*
+
+    1. Introduction .......................... |buckler-introduction|
+    2. Requirements .......................... |buckler-requirements|
+    3. Setup ................................. |buckler-setup|
+    4. Configuration ......................... |buckler-configuration|
+    5. How It Works .......................... |buckler-how-it-works|
+    6. Related Plugins ....................... |buckler-related-plugins|
+    7. About ................................. |buckler-about|
+
+==============================================================================
+INTRODUCTION                                            *buckler-introduction*
+
+buckler is a Neovim plugin that maintains a linear yank history and
+automatically synchronizes it with the unnamed, numbered, and clipboard
+registers.
+
+The plugin ensures that your yank history stays consistent across all relevant
+registers, making it easier to work with multiple yanked items and providing
+seamless integration with the system clipboard.
+
+Key features:
+  • Maintains a linear history of yanked text
+  • Automatically synchronizes numbered registers (0-9) with history
+  • Integrates with system clipboard registers (* and +)
+  • Tracks clipboard changes when focus returns to Neovim
+  • Handles visual mode paste operations intelligently
+
+For a complementary plugin that prevents delete/change operations from
+affecting registers, see https://github.com/Coacher/neovim-cutlass
+
+==============================================================================
+REQUIREMENTS                                            *buckler-requirements*
+
+• Neovim 0.7.0 or later
+• 'clipboard' feature (optional, for system clipboard synchronization)
+
+==============================================================================
+SETUP                                                          *buckler-setup*
+
+To enable buckler with default settings, add this to your init.lua:
+>lua
+    require('buckler').setup()
+<
+To customize the plugin behavior, pass a configuration table:
+>lua
+    require('buckler').setup({
+        history_length = 20,
+        sync_clipboard = true,
+    })
+<
+==============================================================================
+CONFIGURATION                                          *buckler-configuration*
+
+The |buckler.setup()| function accepts an optional configuration table with
+the following options:
+
+                                                       *buckler-history_length*
+history_length~
+    Type: number
+    Default: 10
+
+    Maximum number of items to store in the yank history. The history is
+    maintained as a circular buffer, with new yanks pushing out the oldest
+    entries when the limit is reached.
+
+    The numbered registers (0-9) are synchronized with the first 10 items of
+    the history, so setting this value lower than 10 will still only populate
+    that many numbered registers.
+
+    Example:
+>lua
+        require('buckler').setup({
+            history_length = 25,
+        })
+<
+                                                       *buckler-sync_clipboard*
+sync_clipboard~
+    Type: boolean
+    Default: true
+
+    Whether to automatically synchronize with the system clipboard when Neovim
+    gains focus. When enabled, the plugin will detect if the clipboard
+    contents changed while you were focused on another application and add the
+    new content to the yank history.
+
+    This feature requires that Neovim has clipboard support (see |clipboard|)
+    and that the 'clipboard' option is configured to use either "unnamed" or
+    "unnamedplus".
+
+    Disable this if you don't want external clipboard changes to affect your
+    yank history.
+
+    Example:
+>lua
+        require('buckler').setup({
+            sync_clipboard = false,
+        })
+<
+==============================================================================
+HOW IT WORKS                                            *buckler-how-it-works*
+
+Register Synchronization~
+
+buckler maintains synchronization between multiple register types:
+
+1. Yank History - Internal linear history up to |buckler-history_length| items
+2. Numbered Registers - Registers "0 through "9 (see |quote_number|)
+3. Unnamed Register - Register "" (see |quote_quote|)
+4. Clipboard Registers - Registers "* and/or "+ (see |quotestar| |quoteplus|)
+
+The synchronization works as follows:
+
+• When you yank text to the unnamed register (default yank behavior), it is
+  added to the yank history, and all numbered registers are updated to reflect
+  the current history state.
+
+• The "0 register always contains the most recent yank.
+
+• Registers "1 through "9 contain progressively older yanks from the history.
+
+• The unnamed register "" points to "0.
+
+• If 'clipboard' is configured, the clipboard register is synced with "0.
+
+Yank Behavior~
+
+When yanking text:
+
+• If yanking to the unnamed/clipboard register, the text is added to the yank
+  history (unless it's identical to the most recent entry).
+
+• If yanking directly to a numbered register (e.g., "3y), the specified
+  history position is updated if it exists.
+
+• Yanking to "0 adds a new entry to the history.
+
+• After any yank, all numbered registers are synchronized with the history.
+
+Visual Mode Paste~
+
+When pasting in visual mode with |p|:
+
+• If pasting from the unnamed/clipboard register, the selected text is NOT
+  added to the yank history. This prevents the replaced text from polluting
+  your history during multiple paste operations.
+
+• The paste still works normally, replacing the selection.
+
+Clipboard Synchronization~
+
+When |buckler-sync_clipboard| is enabled:
+
+• On |FocusLost|, the current clipboard contents are stored.
+
+• On |FocusGained|, the clipboard is checked for changes.
+
+• If the clipboard changed while focus was away (e.g., you copied text from
+  a web browser), the new content is added to the yank history.
+
+• This allows you to seamlessly integrate external clipboard operations into
+  your Neovim yank workflow.
+
+==============================================================================
+RELATED PLUGINS                                      *buckler-related-plugins*
+
+neovim-cutlass~
+    https://github.com/Coacher/neovim-cutlass
+
+    A plugin that prevents delete and change operations from affecting
+    registers. Works well with buckler to give you complete control over
+    what goes into your yank history.
+
+==============================================================================
+ABOUT                                                          *buckler-about*
+
+Find the latest version of buckler at:
+
+    https://github.com/Coacher/neovim-buckler
+
+Please report bugs and feature requests on the issue tracker.
+
+==============================================================================
+vim:tw=78:sw=4:ft=help:norl:
