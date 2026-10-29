@@ -14,6 +14,17 @@ M.history = {}
 ---@type BucklerHistoryItem
 local null_entry = { value = '', type = '' }
 
+--- Make a yank history item; empty text carries no type
+---@param value string The yanked text content
+---@param type string The type of the yanked content
+---@return BucklerHistoryItem
+function M.item(value, type)
+    if value == '' then
+        return null_entry
+    end
+    return { value = value, type = type }
+end
+
 --- Count the number of items in the yank history
 ---@return number
 function M.count()

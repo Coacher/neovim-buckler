@@ -1,4 +1,3 @@
-local config = require('buckler.config')
 local clipboard = require('buckler.clipboard')
 local history = require('buckler.history')
 
@@ -8,7 +7,7 @@ local M = {}
 ---@param register string The register name
 ---@return BucklerHistoryItem
 function M.get_reg(register)
-    return { value = vim.fn.getreg(register), type = vim.fn.getregtype(register) }
+    return history.item(vim.fn.getreg(register), vim.fn.getregtype(register))
 end
 
 --- Set the given register to the given yank history item
@@ -28,18 +27,19 @@ end
 --- Set the unnamed and clipboard registers from the 0 register
 function M.set_clipboard_from_zero()
     vim.fn.setreg('', { points_to = '0' })
-    if clipboard.register ~= '' then
-        M.set_reg(clipboard.register, M.get_reg('0'))
+    for _, register in ipairs(clipboard.registers) do
+        M.set_reg(register, M.get_reg('0'))
     end
 end
 
---- Sync history with registers
+--- Push the numbered and clipboard registers to the yank history
+--- Then update all the registers from the resulting yank history
 function M.sync_history_with_registers()
-    for idx = math.min(config.options.history_length, 10) - 1, 0, -1 do
+    for idx = 9, 0, -1 do
         history.push(M.get_reg(tostring(idx)))
     end
-    if clipboard.register ~= '' then
-        history.push(M.get_reg(clipboard.register))
+    if #clipboard.registers > 0 then
+        history.push(M.get_reg(clipboard.primary()))
     end
     M.set_numbered_from_history()
     M.set_clipboard_from_zero()

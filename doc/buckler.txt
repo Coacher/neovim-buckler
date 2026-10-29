@@ -18,8 +18,7 @@ CONTENTS                                             *neovim-buckler-contents*
 INTRODUCTION                                     *neovim-buckler-introduction*
 
 neovim-buckler is a Neovim plugin that maintains a linear yank history and
-automatically synchronizes it with the unnamed, numbered, and clipboard
-registers.
+synchronizes it with the unnamed, numbered, and clipboard registers.
 
 The plugin ensures that your yank history stays consistent across all relevant
 registers, making it easier to work with multiple yanked items and providing
@@ -27,7 +26,7 @@ seamless integration with the system clipboard.
 
 Key features:
   • Maintains a linear history of yanked text
-  • Automatically synchronizes numbered registers (0-9) with history
+  • Synchronizes numbered registers (0-9) with history
   • Integrates with system clipboard registers (* and +)
   • Tracks clipboard changes when focus returns to Neovim
   • Handles visual mode paste operations intelligently
@@ -55,6 +54,9 @@ To customize the plugin behavior, pass a configuration table:
         sync_clipboard = true,
     })
 <
+The 'clipboard' option is read once when |buckler.setup()| is called,
+so set it beforehand. Changing 'clipboard' at runtime is not supported.
+
 ==============================================================================
 CONFIGURATION                                   *neovim-buckler-configuration*
 
@@ -68,13 +70,12 @@ history_length~
 
     Maximum number of items to store in the yank history. The history is
     maintained as a linear buffer, with new yanks pushing out the oldest
-    entries when the limit is reached.
+    entries when the limit is reached. The minimum value is 10.
 
-    The numbered registers (0-9) are synchronized with the first 10 items of
-    the history, so setting this value lower than 10 will still only populate
-    that many numbered registers. Setting it higher than 10 allows you to
-    maintain a longer history internally, even though only the first 10 items
-    will be accessible through numbered registers.
+    The numbered registers (0-9) are synchronized with the first 10 items
+    of the history. Setting it higher than 10 allows you to maintain a longer
+    history internally, even though only the first 10 items will be accessible
+    through numbered registers.
 
     Example:
 >lua
@@ -120,9 +121,9 @@ neovim-buckler maintains synchronization between multiple register types:
 
 The synchronization works as follows:
 
-• When you yank text to the unnamed register (default yank behavior), it is
-  added to the yank history, and all numbered registers are updated to reflect
-  the current history state.
+• When you yank, delete, or change text to the unnamed register (default yank
+  behavior), it is added to the yank history, and all numbered registers are
+  updated to reflect the current history state.
 
 • The "0 register always contains the most recent yank.
 
@@ -134,7 +135,7 @@ The synchronization works as follows:
 
 Yank Behavior~
 
-When yanking text:
+Yanks, deletes and changes follow the same rules:
 
 • If yanking to the unnamed/clipboard register, the text is added to the yank
   history (unless it's identical to the most recent entry).
@@ -142,7 +143,8 @@ When yanking text:
 • If yanking directly to a numbered register (e.g., "3y), the specified
   history position is updated if it exists.
 
-• Yanking to "0 adds a new entry to the history.
+• Yanking to "0 replaces the most recent entry, or adds the first entry when
+  the history is empty.
 
 • After any yank, all numbered registers are synchronized with the history.
 
@@ -159,8 +161,6 @@ When pasting in visual mode with |p|:
 Clipboard Synchronization~
 
 When |neovim-buckler-sync_clipboard| is enabled:
-
-• On |FocusLost|, the current clipboard contents are stored.
 
 • On |FocusGained|, the clipboard is checked for changes.
 

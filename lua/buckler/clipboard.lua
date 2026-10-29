@@ -1,43 +1,43 @@
 local M = {}
 
---- Stores the configured clipboard register name
----@type string
-M.register = ''
+--- Stores the configured clipboard register names
+---@type string[]
+M.registers = {}
 
 --- Indicates whether the editor has clipboard support
 ---@type boolean
 local has_clipboard = vim.fn.has('clipboard') == 1
 
---- Store the configured clipboard register name
+--- Store the configured clipboard register names
 function M.store_clipboard_name()
+    M.registers = {}
     if has_clipboard then
         local clipboard_option = vim.opt.clipboard:get()
         if vim.tbl_contains(clipboard_option, 'unnamedplus') then
-            M.register = '+'
-        elseif vim.tbl_contains(clipboard_option, 'unnamed') then
-            M.register = '*'
-        else
-            M.register = ''
+            table.insert(M.registers, '+')
+        end
+        if vim.tbl_contains(clipboard_option, 'unnamed') then
+            table.insert(M.registers, '*')
         end
     end
 end
 
---- Check if the given name is the clipboard register name
+--- Get the primary clipboard register name
+---@return string
+function M.primary()
+    return M.registers[1] or ''
+end
+
+--- Check if the given name is the clipboard or the unnamed register name
 ---@param name string The register name to check
 ---@return boolean
 function M.is_clipboard_register(name)
-    return (name == M.register) or (name == '')
+    return vim.tbl_contains(M.registers, name) or (name == '') or (name == '"')
 end
 
 --- Setup function for the clipboard module
 function M.setup()
     M.store_clipboard_name()
-
-    vim.api.nvim_create_autocmd('OptionSet', {
-        group = vim.api.nvim_create_augroup('buckler_store_clipboard_name', { clear = true }),
-        pattern = 'clipboard',
-        callback = function() M.store_clipboard_name() end
-    })
 end
 
 return M
