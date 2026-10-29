@@ -54,8 +54,8 @@ To customize the plugin behavior, pass a configuration table:
         sync_clipboard = true,
     })
 <
-The 'clipboard' option is read once when |buckler.setup()| is called,
-so set it beforehand. Changing 'clipboard' at runtime is not supported.
+The 'clipboard' option is read once at startup. Changing 'clipboard' at
+runtime is not supported.
 
 ==============================================================================
 CONFIGURATION                                   *neovim-buckler-configuration*
